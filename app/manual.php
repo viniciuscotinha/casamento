@@ -13,6 +13,47 @@ function manual_supports_schema(): bool
         && db_column_exists('convidados', 'manual_sort_order');
 }
 
+function manual_render_botanical_svg(string $extraClass): void
+{
+    ?>
+    <svg class="manual-botanical <?= e($extraClass) ?>" viewBox="0 0 220 240" aria-hidden="true">
+      <path class="botanical-fill" d="M162 36c22 9 39 27 46 52c7 27 0 58-15 87c-10-22-23-36-41-49c-15-10-32-20-44-37c-13-19-18-44-15-68c23 4 47 6 69 15z"></path>
+      <path class="botanical-fill" d="M66 166c15-10 26-24 34-41c8-18 14-38 31-52c9 23 8 48-2 72c-11 24-31 43-56 54c-8-10-11-21-7-33z"></path>
+      <path class="botanical-line" d="M196 12c-20 32-38 67-50 105c-10 34-24 70-50 108"></path>
+      <path class="botanical-line" d="M174 44c-19-1-37 5-49 20c17 4 34 12 48 27"></path>
+      <path class="botanical-line" d="M162 90c-21 0-40 7-53 24c17 3 35 13 47 29"></path>
+      <path class="botanical-line" d="M141 136c-18 3-33 13-42 30c14 0 29 6 40 18"></path>
+      <path class="botanical-line" d="M110 186c-15 2-28 11-36 25c13-1 24 2 34 10"></path>
+      <path class="botanical-line" d="M131 61c5-13 14-23 28-31c-2 17-10 30-24 39"></path>
+      <path class="botanical-line" d="M117 108c7-15 18-26 34-35c-3 19-13 32-30 42"></path>
+      <path class="botanical-line" d="M96 157c9-15 21-25 37-31c-4 18-15 31-32 38"></path>
+      <path class="botanical-line" d="M74 204c9-13 21-21 35-25c-5 15-15 26-29 32"></path>
+    </svg>
+    <?php
+}
+
+function manual_render_page_open(string $pageClass = '', string $contentClass = 'manual-page-content'): void
+{
+    ?>
+    <section class="manual-page<?= $pageClass !== '' ? ' ' . e($pageClass) : '' ?>">
+      <span class="manual-curve manual-curve--top-left" aria-hidden="true"></span>
+      <span class="manual-curve manual-curve--bottom-right" aria-hidden="true"></span>
+      <span class="manual-dots manual-dots--top-right" aria-hidden="true"></span>
+      <span class="manual-dots manual-dots--bottom-left" aria-hidden="true"></span>
+      <?php manual_render_botanical_svg('manual-botanical--top-right'); ?>
+      <?php manual_render_botanical_svg('manual-botanical--bottom-left'); ?>
+      <div class="<?= e($contentClass) ?>">
+    <?php
+}
+
+function manual_render_page_close(): void
+{
+    ?>
+      </div>
+    </section>
+    <?php
+}
+
 function manual_role_is_feminine(string $roleTitle): bool
 {
     $roleTitle = function_exists('mb_strtolower')

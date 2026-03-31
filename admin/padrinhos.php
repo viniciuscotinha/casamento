@@ -527,8 +527,10 @@ try {
     }
 
     $previewGuests = array_slice($previewGuests, 0, 2);
+    $previewIsPlural = manual_group_is_plural($previewGuests);
     $previewCoverLines = manual_cover_lines($previewGuests);
     $previewSupportRecommendations = manual_support_recommendations($previewGuests);
+    $previewRecommendationCatalog = manual_support_recommendations([]);
     $previewRoles = [];
 
     foreach ($previewGuests as $index => $previewGuest) {
@@ -546,8 +548,161 @@ try {
             'name' => normalized_full_name($previewGuest),
             'title' => $previewRoleTitle,
             'text' => $previewRoleText,
+            'swatches' => manual_role_swatches($previewRoleTitle),
         ];
     }
+
+    $previewDocumentHtml = (static function () use (
+        $previewIsPlural,
+        $previewCoverLines,
+        $previewRoles,
+        $previewSupportRecommendations,
+        $inviteFieldValues,
+        $inviteFieldPreviewFallbacks
+    ): string {
+        ob_start();
+        ?>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prévia do convite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Oswald:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="<?= e(url('/assets/css/styles.css')) ?>">
+</head>
+<body class="manual-body">
+  <main class="private-manual">
+    <div class="manual-container">
+      <div class="manual-stack">
+        <?php manual_render_page_open('manual-page--cover', 'manual-page-content manual-page-content--wide'); ?>
+          <div class="manual-cover-title<?= !$previewIsPlural ? ' manual-cover-title--single' : '' ?>" data-preview-cover-title>
+            <span data-preview-cover-line="0"><?= e($previewCoverLines[0] ?? 'Convite') ?></span>
+            <span class="manual-ampersand" data-preview-cover-ampersand <?= $previewIsPlural ? '' : 'hidden' ?>>&amp;</span>
+            <span data-preview-cover-line="1" <?= isset($previewCoverLines[1]) ? '' : 'hidden' ?>><?= e($previewCoverLines[1] ?? '') ?></span>
+          </div>
+          <div class="manual-rule"></div>
+          <h1
+            class="manual-question"
+            data-preview-question
+            data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_question_text']) ?>"
+          ><?= e($inviteFieldValues['manual_question_text']) ?></h1>
+        <?php manual_render_page_close(); ?>
+
+        <?php manual_render_page_open('', 'manual-page-content manual-page-content--wide'); ?>
+          <h2 class="manual-title" data-preview-intro-title data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_intro_title']) ?>"><?= e($inviteFieldValues['manual_intro_title']) ?></h2>
+          <p class="manual-copy manual-copy--wide" data-preview-intro-line-1 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_intro_line_1']) ?>"><?= e($inviteFieldValues['manual_intro_line_1']) ?></p>
+          <p class="manual-copy manual-copy--wide" data-preview-intro-line-2 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_intro_line_2']) ?>"><?= e($inviteFieldValues['manual_intro_line_2']) ?></p>
+        <?php manual_render_page_close(); ?>
+
+        <?php manual_render_page_open(); ?>
+          <h2 class="manual-title" data-preview-calendar-title data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_calendar_title']) ?>"><?= e($inviteFieldValues['manual_calendar_title']) ?></h2>
+          <p class="manual-month" data-preview-calendar-month data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_calendar_month_label']) ?>"><?= e($inviteFieldValues['manual_calendar_month_label']) ?></p>
+          <div class="manual-calendar">
+            <div class="manual-calendar-grid">
+              <span class="manual-weekday">Dom</span>
+              <span class="manual-weekday">Seg</span>
+              <span class="manual-weekday">Ter</span>
+              <span class="manual-weekday">Qua</span>
+              <span class="manual-weekday">Qui</span>
+              <span class="manual-weekday">Sex</span>
+              <span class="manual-weekday">Sab</span>
+              <span class="manual-day is-empty">.</span>
+              <span class="manual-day is-empty">.</span>
+              <span class="manual-day is-empty">.</span>
+              <span class="manual-day is-empty">.</span>
+              <span class="manual-day is-empty">.</span>
+              <span class="manual-day is-empty">.</span>
+              <span class="manual-day">1</span>
+              <span class="manual-day">2</span>
+              <span class="manual-day">3</span>
+              <span class="manual-day">4</span>
+              <span class="manual-day">5</span>
+              <span class="manual-day">6</span>
+              <span class="manual-day">7</span>
+              <span class="manual-day">8</span>
+              <span class="manual-day is-active">9</span>
+              <span class="manual-day">10</span>
+              <span class="manual-day">11</span>
+              <span class="manual-day">12</span>
+              <span class="manual-day">13</span>
+              <span class="manual-day">14</span>
+              <span class="manual-day">15</span>
+              <span class="manual-day">16</span>
+              <span class="manual-day">17</span>
+              <span class="manual-day">18</span>
+              <span class="manual-day">19</span>
+              <span class="manual-day">20</span>
+              <span class="manual-day">21</span>
+              <span class="manual-day">22</span>
+              <span class="manual-day">23</span>
+              <span class="manual-day">24</span>
+              <span class="manual-day">25</span>
+              <span class="manual-day">26</span>
+              <span class="manual-day">27</span>
+              <span class="manual-day">28</span>
+              <span class="manual-day">29</span>
+              <span class="manual-day">30</span>
+              <span class="manual-day">31</span>
+            </div>
+          </div>
+        <?php manual_render_page_close(); ?>
+
+        <?php foreach ($previewRoles as $previewIndex => $previewRole): ?>
+          <?php manual_render_page_open(); ?>
+            <div class="manual-role-card" data-preview-role-index="<?= e((string) $previewIndex) ?>">
+              <span hidden data-preview-role-name><?= e($previewRole['name']) ?></span>
+              <h3 data-preview-role-title><?= e($previewRole['title']) ?></h3>
+              <p class="manual-copy manual-copy--small" data-preview-role-text><?= e($previewRole['text']) ?></p>
+              <div class="manual-swatches" data-preview-role-swatches>
+                <?php foreach ($previewRole['swatches'] as $swatchClass): ?>
+                  <span class="manual-swatch <?= e($swatchClass) ?>"></span>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          <?php manual_render_page_close(); ?>
+        <?php endforeach; ?>
+
+        <?php manual_render_page_open('', 'manual-page-content manual-page-content--wide'); ?>
+          <h2 class="manual-title"><?= e(manual_support_title()) ?></h2>
+          <div class="manual-recommendations" data-preview-recommendations>
+            <?php foreach ($previewSupportRecommendations as $recommendation): ?>
+              <article class="manual-recommendation-card">
+                <p class="manual-recommendation-kicker"><?= e($recommendation['label']) ?></p>
+                <h3><?= e($recommendation['name']) ?></h3>
+                <div class="manual-recommendation-links">
+                  <a class="manual-recommendation-link" href="<?= e($recommendation['phone_href']) ?>"><?= e($recommendation['phone']) ?></a>
+                  <a class="manual-recommendation-link" href="<?= e($recommendation['url']) ?>" target="_blank" rel="noreferrer">Instagram</a>
+                </div>
+                <?php if (trim((string) ($recommendation['note'] ?? '')) !== ''): ?>
+                  <p class="manual-recommendation-note"><?= e($recommendation['note']) ?></p>
+                <?php endif; ?>
+              </article>
+            <?php endforeach; ?>
+          </div>
+        <?php manual_render_page_close(); ?>
+
+        <?php manual_render_page_open('', 'manual-page-content manual-page-content--wide'); ?>
+          <h2 class="manual-title" data-preview-day-title data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_title']) ?>"><?= e($inviteFieldValues['manual_day_title']) ?></h2>
+          <p class="manual-copy manual-copy--wide" data-preview-day-line-1 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_line_1']) ?>"><?= e($inviteFieldValues['manual_day_line_1']) ?></p>
+          <p class="manual-copy manual-copy--wide" data-preview-day-line-2 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_line_2']) ?>"><?= e($inviteFieldValues['manual_day_line_2']) ?></p>
+          <p class="manual-copy" data-preview-day-line-3 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_line_3']) ?>"><?= e($inviteFieldValues['manual_day_line_3']) ?></p>
+        <?php manual_render_page_close(); ?>
+
+        <?php manual_render_page_open('manual-page--closing'); ?>
+          <h2 class="manual-thanks" data-preview-thanks data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_thanks_text']) ?>"><?= e($inviteFieldValues['manual_thanks_text']) ?></h2>
+        <?php manual_render_page_close(); ?>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
+        <?php
+
+        return trim((string) ob_get_clean());
+    })();
 
     $metrics = [
         'convites' => count($manualInvites),
@@ -582,7 +737,6 @@ admin_render_flashes();
 <section class="admin-two-col admin-two-col--padrinhos-top">
   <article class="admin-panel admin-panel--sticky">
     <p class="eyebrow"><?= $editingInvite !== null ? 'Editar convite' : 'Novo convite' ?></p>
-    <h1><?= $editingInvite !== null ? 'Atualizar padrinhos' : 'Cadastrar padrinhos' ?></h1>
     <form method="post" class="admin-form-grid">
       <?= csrf_input() ?>
       <input type="hidden" name="action" value="<?= $editingInvite !== null ? 'update' : 'create' ?>">
@@ -598,9 +752,8 @@ admin_render_flashes();
           type="text"
           required
           value="<?= e($editingInvite['nome_grupo'] ?? '') ?>"
-          placeholder="Ex.: Amanda + Felipe"
+          placeholder="Ex.: Amanda & Felipe"
         >
-        <small>Use um nome de administração para encontrar o convite rápido no painel.</small>
       </div>
 
       <div class="admin-field">
@@ -614,7 +767,6 @@ admin_render_flashes();
           autocapitalize="off"
           spellcheck="false"
         >
-        <small>Este identificador será usado em `/p/...` e pode ser editado manualmente.</small>
       </div>
 
       <div class="admin-check-row">
@@ -708,80 +860,25 @@ admin_render_flashes();
 
   <article class="admin-panel admin-panel--preview">
     <p class="eyebrow">Prévia</p>
-    <h2>Como o convite está ficando</h2>
-    <div class="admin-manual-preview">
-      <section class="admin-manual-preview__card admin-manual-preview__card--cover">
-        <p class="admin-manual-preview__kicker">Capa</p>
-        <div class="admin-manual-preview__names">
-          <span data-preview-cover-line="0"><?= e($previewCoverLines[0] ?? 'Convite') ?></span>
-          <span class="admin-manual-preview__ampersand" data-preview-cover-ampersand <?= count($previewCoverLines) > 1 ? '' : 'hidden' ?>>&amp;</span>
-          <span data-preview-cover-line="1" <?= count($previewCoverLines) > 1 ? '' : 'hidden' ?>><?= e($previewCoverLines[1] ?? '') ?></span>
-        </div>
-        <p
-          class="admin-manual-preview__question"
-          data-preview-question
-          data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_question_text']) ?>"
-        ><?= e($inviteFieldValues['manual_question_text']) ?></p>
-      </section>
-
-      <section class="admin-manual-preview__card">
-        <p class="admin-manual-preview__kicker">Abertura</p>
-        <h3 data-preview-intro-title data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_intro_title']) ?>"><?= e($inviteFieldValues['manual_intro_title']) ?></h3>
-        <p data-preview-intro-line-1 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_intro_line_1']) ?>"><?= e($inviteFieldValues['manual_intro_line_1']) ?></p>
-        <p data-preview-intro-line-2 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_intro_line_2']) ?>"><?= e($inviteFieldValues['manual_intro_line_2']) ?></p>
-      </section>
-
-      <section class="admin-manual-preview__card">
-        <p class="admin-manual-preview__kicker">Calendário</p>
-        <h3 data-preview-calendar-title data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_calendar_title']) ?>"><?= e($inviteFieldValues['manual_calendar_title']) ?></h3>
-        <p class="admin-manual-preview__month" data-preview-calendar-month data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_calendar_month_label']) ?>"><?= e($inviteFieldValues['manual_calendar_month_label']) ?></p>
-      </section>
-
-      <section class="admin-manual-preview__card">
-        <p class="admin-manual-preview__kicker">Participantes</p>
-        <div class="admin-manual-preview__roles">
-          <?php foreach ($previewRoles as $previewIndex => $previewRole): ?>
-            <article class="admin-manual-preview__role" data-preview-role-index="<?= e((string) $previewIndex) ?>">
-              <strong data-preview-role-name><?= e($previewRole['name']) ?></strong>
-              <span data-preview-role-title><?= e($previewRole['title']) ?></span>
-              <p data-preview-role-text><?= e($previewRole['text']) ?></p>
-            </article>
-          <?php endforeach; ?>
-        </div>
-      </section>
-
-      <section class="admin-manual-preview__card">
-        <p class="admin-manual-preview__kicker">Sugestões visíveis</p>
-        <div class="admin-manual-preview__tags" data-preview-tags>
-          <?php foreach ($previewSupportRecommendations as $recommendation): ?>
-            <span><?= e($recommendation['label']) ?></span>
-          <?php endforeach; ?>
-        </div>
-      </section>
-
-      <section class="admin-manual-preview__card">
-        <p class="admin-manual-preview__kicker">Encerramento</p>
-        <h3 data-preview-day-title data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_title']) ?>"><?= e($inviteFieldValues['manual_day_title']) ?></h3>
-        <p data-preview-day-line-1 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_line_1']) ?>"><?= e($inviteFieldValues['manual_day_line_1']) ?></p>
-        <p data-preview-day-line-2 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_line_2']) ?>"><?= e($inviteFieldValues['manual_day_line_2']) ?></p>
-        <p data-preview-day-line-3 data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_day_line_3']) ?>"><?= e($inviteFieldValues['manual_day_line_3']) ?></p>
-        <strong class="admin-manual-preview__thanks" data-preview-thanks data-preview-fallback="<?= e($inviteFieldPreviewFallbacks['manual_thanks_text']) ?>"><?= e($inviteFieldValues['manual_thanks_text']) ?></strong>
-      </section>
+    <div class="admin-manual-device">
+      <div class="admin-manual-device__speaker" aria-hidden="true"></div>
+      <div class="admin-manual-device__frame">
+        <iframe
+          class="admin-manual-device__screen"
+          title="Prévia do convite de padrinhos"
+          loading="eager"
+          data-manual-preview-frame
+          data-preview-recommendations='<?= e((string) json_encode($previewRecommendationCatalog, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ?>'
+        ></iframe>
+      </div>
     </div>
+    <textarea class="admin-manual-device__srcdoc" hidden aria-hidden="true" data-manual-preview-srcdoc><?= e($previewDocumentHtml) ?></textarea>
   </article>
 </section>
 
 <?php if ($editingInvite !== null): ?>
   <section class="admin-two-col admin-two-col--padrinhos-bottom">
     <article class="admin-panel">
-      <p class="eyebrow">Participantes</p>
-      <h2>Montar este link de padrinhos</h2>
-      <div class="admin-note">
-        Convite atual: <strong><?= e($editingInvite['nome_grupo']) ?></strong>
-        <br>Link: <strong><?= e('/p/' . $editingInvite['public_slug']) ?></strong>
-        <br>Adicione até 2 convidados neste mesmo link e escolha o título de cada card.
-      </div>
-
       <?php if (count($linkedGuests) >= 2): ?>
         <div class="admin-note">
           Este link já está com 2 participantes. Remova alguém antes de adicionar outra pessoa.

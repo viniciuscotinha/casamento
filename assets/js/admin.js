@@ -218,11 +218,20 @@ document.addEventListener('DOMContentLoaded', () => {
     syncManualRoleText();
   }
 
-  const previewRoot = document.querySelector('.admin-manual-preview');
+  const previewFrame = document.querySelector('[data-manual-preview-frame]');
+  const previewSource = document.querySelector('[data-manual-preview-srcdoc]');
 
-  if (!(previewRoot instanceof HTMLElement)) {
+  if (!(previewFrame instanceof HTMLIFrameElement) || !(previewSource instanceof HTMLTextAreaElement)) {
     return;
   }
+
+  const previewRecommendations = (() => {
+    try {
+      return JSON.parse(previewFrame.dataset.previewRecommendations || '[]');
+    } catch (error) {
+      return [];
+    }
+  })();
 
   const previewBindings = {
     question: '[data-preview-question]',
@@ -236,6 +245,16 @@ document.addEventListener('DOMContentLoaded', () => {
     day_line_2: '[data-preview-day-line-2]',
     day_line_3: '[data-preview-day-line-3]',
     thanks: '[data-preview-thanks]',
+  };
+
+  const previewSwatchesForRole = (roleTitle) => {
+    const normalizedRole = roleTitle.trim().toLowerCase();
+
+    if (normalizedRole.includes('pajem') || normalizedRole.includes('padrinho')) {
+      return ['manual-swatch--black', 'manual-swatch--emerald-1'];
+    }
+
+    return ['manual-swatch--emerald-1', 'manual-swatch--emerald-2', 'manual-swatch--emerald-3'];
   };
 
   const splitCoverLines = (name) => {
@@ -254,15 +273,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return [parts.shift() || trimmedName, parts.join(' ')];
   };
 
-  const refreshPreviewSuggestions = () => {
-    const tagsContainer = previewRoot.querySelector('[data-preview-tags]');
+  const getPreviewDocument = () => (
+    previewFrame.contentDocument instanceof Document ? previewFrame.contentDocument : null
+  );
 
-    if (!(tagsContainer instanceof HTMLElement)) {
+  const refreshPreviewSuggestions = () => {
+    const previewDocument = getPreviewDocument();
+
+    if (!(previewDocument instanceof Document)) {
+      return;
+    }
+
+    const cardsContainer = previewDocument.querySelector('[data-preview-recommendations]');
+
+    if (!(cardsContainer instanceof HTMLElement)) {
       return;
     }
 
     const titles = Array.from(
-      previewRoot.querySelectorAll('[data-preview-role-title]')
+      previewDocument.querySelectorAll('[data-preview-role-title]')
     )
       .map((node) => node.textContent.trim())
       .filter((title) => title !== '');
@@ -283,33 +312,79 @@ document.addEventListener('DOMContentLoaded', () => {
       labels.push('Sugestão terno padrinhos');
     }
 
-    tagsContainer.replaceChildren(
-      ...labels.map((label) => {
-        const item = document.createElement('span');
-        item.textContent = label;
-        return item;
+    const activeRecommendations = previewRecommendations.filter((recommendation) => (
+      labels.includes(recommendation.label)
+    ));
+
+    cardsContainer.replaceChildren(
+      ...activeRecommendations.map((recommendation) => {
+        const card = previewDocument.createElement('article');
+        card.className = 'manual-recommendation-card';
+
+        const kicker = previewDocument.createElement('p');
+        kicker.className = 'manual-recommendation-kicker';
+        kicker.textContent = recommendation.label;
+
+        const title = previewDocument.createElement('h3');
+        title.textContent = recommendation.name;
+
+        const links = previewDocument.createElement('div');
+        links.className = 'manual-recommendation-links';
+
+        const phoneLink = previewDocument.createElement('a');
+        phoneLink.className = 'manual-recommendation-link';
+        phoneLink.href = recommendation.phone_href;
+        phoneLink.textContent = recommendation.phone;
+
+        const instagramLink = previewDocument.createElement('a');
+        instagramLink.className = 'manual-recommendation-link';
+        instagramLink.href = recommendation.url;
+        instagramLink.target = '_blank';
+        instagramLink.rel = 'noreferrer';
+        instagramLink.textContent = 'Instagram';
+
+        links.append(phoneLink, instagramLink);
+        card.append(kicker, title, links);
+
+        if ((recommendation.note || '').trim() !== '') {
+          const note = previewDocument.createElement('p');
+          note.className = 'manual-recommendation-note';
+          note.textContent = recommendation.note;
+          card.append(note);
+        }
+
+        return card;
       })
     );
   };
 
   const refreshPreviewCover = () => {
-    const lineOne = previewRoot.querySelector('[data-preview-cover-line="0"]');
-    const lineTwo = previewRoot.querySelector('[data-preview-cover-line="1"]');
-    const ampersand = previewRoot.querySelector('[data-preview-cover-ampersand]');
+    const previewDocument = getPreviewDocument();
+
+    if (!(previewDocument instanceof Document)) {
+      return;
+    }
+
+    const titleShell = previewDocument.querySelector('[data-preview-cover-title]');
+    const lineOne = previewDocument.querySelector('[data-preview-cover-line="0"]');
+    const lineTwo = previewDocument.querySelector('[data-preview-cover-line="1"]');
+    const ampersand = previewDocument.querySelector('[data-preview-cover-ampersand]');
 
     if (
-      !(lineOne instanceof HTMLElement)
+      !(titleShell instanceof HTMLElement)
+      || !(lineOne instanceof HTMLElement)
       || !(lineTwo instanceof HTMLElement)
       || !(ampersand instanceof HTMLElement)
     ) {
       return;
     }
 
-    const names = Array.from(previewRoot.querySelectorAll('[data-preview-role-name]'))
+    const names = Array.from(previewDocument.querySelectorAll('[data-preview-role-name]'))
       .map((node) => node.textContent.trim())
       .filter((name) => name !== '');
 
     if (names.length > 1) {
+      titleShell.classList.remove('manual-cover-title--single');
       lineOne.textContent = names[0];
       lineTwo.textContent = names[1];
       lineTwo.hidden = false;
@@ -318,80 +393,143 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const [firstLine, secondLine] = splitCoverLines(names[0] || 'Convite');
+    titleShell.classList.add('manual-cover-title--single');
     lineOne.textContent = firstLine;
     lineTwo.textContent = secondLine || '';
     lineTwo.hidden = !secondLine;
     ampersand.hidden = true;
   };
 
-  Object.entries(previewBindings).forEach(([source, selector]) => {
-    const input = document.querySelector(`[data-preview-source="${source}"]`);
-    const target = previewRoot.querySelector(selector);
+  const syncPreviewTextBindings = () => {
+    const previewDocument = getPreviewDocument();
 
-    if (
-      !((input instanceof HTMLInputElement) || (input instanceof HTMLTextAreaElement))
-      || !(target instanceof HTMLElement)
-    ) {
+    if (!(previewDocument instanceof Document)) {
       return;
     }
 
-    const sync = () => {
-      const fallback = target.dataset.previewFallback || '';
-      target.textContent = input.value.trim() || fallback;
-    };
+    Object.entries(previewBindings).forEach(([source, selector]) => {
+      const input = document.querySelector(`[data-preview-source="${source}"]`);
+      const target = previewDocument.querySelector(selector);
 
-    input.addEventListener('input', sync);
-    input.addEventListener('change', sync);
-    sync();
-  });
+      if (
+        !((input instanceof HTMLInputElement) || (input instanceof HTMLTextAreaElement))
+        || !(target instanceof HTMLElement)
+      ) {
+        return;
+      }
 
-  document.querySelectorAll('[data-preview-role-title-source]').forEach((sourceNode) => {
-    if (!(sourceNode instanceof HTMLSelectElement)) {
+      const sync = () => {
+        const fallback = target.dataset.previewFallback || '';
+        target.textContent = input.value.trim() || fallback;
+      };
+
+      input.addEventListener('input', sync);
+      input.addEventListener('change', sync);
+      sync();
+    });
+  };
+
+  const syncPreviewRoleBindings = () => {
+    const previewDocument = getPreviewDocument();
+
+    if (!(previewDocument instanceof Document)) {
       return;
     }
 
-    const index = sourceNode.dataset.previewRoleTitleSource || '';
-    const target = previewRoot.querySelector(
-      `[data-preview-role-index="${index}"] [data-preview-role-title]`
-    );
+    document.querySelectorAll('[data-preview-role-title-source]').forEach((sourceNode) => {
+      if (!(sourceNode instanceof HTMLSelectElement)) {
+        return;
+      }
 
-    if (!(target instanceof HTMLElement)) {
-      return;
-    }
+      const index = sourceNode.dataset.previewRoleTitleSource || '';
+      const roleCard = previewDocument.querySelector(`[data-preview-role-index="${index}"]`);
+      const target = roleCard instanceof HTMLElement
+        ? roleCard.querySelector('[data-preview-role-title]')
+        : null;
+      const swatchesTarget = roleCard instanceof HTMLElement
+        ? roleCard.querySelector('[data-preview-role-swatches]')
+        : null;
+      const textTarget = roleCard instanceof HTMLElement
+        ? roleCard.querySelector('[data-preview-role-text]')
+        : null;
+      const nameTarget = roleCard instanceof HTMLElement
+        ? roleCard.querySelector('[data-preview-role-name]')
+        : null;
+      const textSourceNode = document.querySelector(`[data-preview-role-text-source="${index}"]`);
 
-    const sync = () => {
-      target.textContent = sourceNode.value.trim() || 'Convidado';
-      refreshPreviewSuggestions();
-    };
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
 
-    sourceNode.addEventListener('input', sync);
-    sourceNode.addEventListener('change', sync);
-    sync();
-  });
+      const sync = () => {
+        const roleTitle = sourceNode.value.trim() || 'Convidado';
+        target.textContent = roleTitle;
 
-  document.querySelectorAll('[data-preview-role-text-source]').forEach((sourceNode) => {
-    if (!(sourceNode instanceof HTMLTextAreaElement)) {
-      return;
-    }
+        if (swatchesTarget instanceof HTMLElement) {
+          swatchesTarget.replaceChildren(
+            ...previewSwatchesForRole(roleTitle).map((className) => {
+              const swatch = previewDocument.createElement('span');
+              swatch.className = `manual-swatch ${className}`;
+              return swatch;
+            })
+          );
+        }
 
-    const index = sourceNode.dataset.previewRoleTextSource || '';
-    const target = previewRoot.querySelector(
-      `[data-preview-role-index="${index}"] [data-preview-role-text]`
-    );
+        if (textSourceNode instanceof HTMLTextAreaElement && textTarget instanceof HTMLElement) {
+          const guestName = nameTarget instanceof HTMLElement ? nameTarget.textContent.trim() : '';
+          const firstName = guestName.split(/\s+/)[0] || '';
+          textTarget.textContent = textSourceNode.value.trim() || manualRoleDefaultText(roleTitle, firstName);
+        }
 
-    if (!(target instanceof HTMLElement)) {
-      return;
-    }
+        refreshPreviewSuggestions();
+      };
 
-    const sync = () => {
-      target.textContent = sourceNode.value.trim();
-    };
+      sourceNode.addEventListener('input', sync);
+      sourceNode.addEventListener('change', sync);
+      sync();
+    });
 
-    sourceNode.addEventListener('input', sync);
-    sourceNode.addEventListener('change', sync);
-    sync();
-  });
+    document.querySelectorAll('[data-preview-role-text-source]').forEach((sourceNode) => {
+      if (!(sourceNode instanceof HTMLTextAreaElement)) {
+        return;
+      }
 
-  refreshPreviewCover();
-  refreshPreviewSuggestions();
+      const index = sourceNode.dataset.previewRoleTextSource || '';
+      const roleCard = previewDocument.querySelector(`[data-preview-role-index="${index}"]`);
+      const target = roleCard instanceof HTMLElement
+        ? roleCard.querySelector('[data-preview-role-text]')
+        : null;
+      const titleTarget = roleCard instanceof HTMLElement
+        ? roleCard.querySelector('[data-preview-role-title]')
+        : null;
+      const nameTarget = roleCard instanceof HTMLElement
+        ? roleCard.querySelector('[data-preview-role-name]')
+        : null;
+
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+
+      const sync = () => {
+        const roleTitle = titleTarget instanceof HTMLElement ? titleTarget.textContent.trim() : 'Convidado';
+        const guestName = nameTarget instanceof HTMLElement ? nameTarget.textContent.trim() : '';
+        const firstName = guestName.split(/\s+/)[0] || '';
+        target.textContent = sourceNode.value.trim() || manualRoleDefaultText(roleTitle, firstName);
+      };
+
+      sourceNode.addEventListener('input', sync);
+      sourceNode.addEventListener('change', sync);
+      sync();
+    });
+  };
+
+  const initializePreviewFrame = () => {
+    syncPreviewTextBindings();
+    syncPreviewRoleBindings();
+    refreshPreviewCover();
+    refreshPreviewSuggestions();
+  };
+
+  previewFrame.addEventListener('load', initializePreviewFrame, { once: true });
+  previewFrame.srcdoc = previewSource.value;
 });

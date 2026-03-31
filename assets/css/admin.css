@@ -507,6 +507,7 @@
 .admin-linked-stack {
   display: grid;
   gap: 1rem;
+  grid-auto-flow: column;
 }
 
 .admin-linked-card {
@@ -541,141 +542,58 @@
   top: 1rem;
 }
 
-.admin-manual-preview {
-  display: grid;
-  gap: 0.75rem;
+.admin-panel__hint {
+  margin: 0 0 0.95rem;
+  color: #7b6d5a;
+  line-height: 1.65;
 }
 
-.admin-manual-preview__card {
-  border-radius: 22px;
-  padding: 1rem 1rem 1.05rem;
-  border: 1px solid rgba(129, 103, 70, 0.14);
+.admin-manual-device {
+  width: min(100%, 418px);
+  margin: 0 auto;
+  padding: 0.9rem 0.9rem 1.05rem;
+  border-radius: 42px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 239, 229, 0.94));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    linear-gradient(180deg, #35322e 0%, #191715 100%);
+  box-shadow:
+    0 30px 60px rgba(36, 29, 22, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-.admin-manual-preview__card--cover {
+.admin-manual-device__speaker {
+  width: 38%;
+  height: 30px;
+  margin: 0 auto 0.85rem;
+  border-radius: 999px;
   background:
-    radial-gradient(circle at top right, rgba(31, 124, 112, 0.08), transparent 38%),
-    linear-gradient(180deg, rgba(250, 247, 240, 0.98), rgba(243, 234, 221, 0.95));
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 52%),
+    linear-gradient(180deg, #111, #27231f);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.55);
 }
 
-.admin-manual-preview__kicker {
-  margin: 0 0 0.42rem;
-  color: #887b69;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
+.admin-manual-device__frame {
+  overflow: hidden;
+  border-radius: 32px;
+  background: #fffdf8;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  aspect-ratio: 390 / 844;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
-.admin-manual-preview__names {
-  display: grid;
-  justify-items: start;
-  gap: 0.08rem;
-  margin-bottom: 0.72rem;
-  color: var(--accent-dark);
-  font-family: var(--font-site-brand);
-  font-size: clamp(1.45rem, 2.4vw, 2rem);
-  line-height: 0.92;
-}
-
-.admin-manual-preview__ampersand {
-  color: #b79262;
-  font-family: var(--font-site-h2);
-  font-size: 1.15rem;
-  line-height: 1;
-}
-
-.admin-manual-preview__question {
-  margin: 0;
-  color: #1f7c70;
-  font-family: var(--font-site-nav-link);
-  font-size: 0.88rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.admin-manual-preview__card h3 {
-  margin: 0 0 0.45rem;
-  color: #2f2a24;
-  font-size: 1rem;
-}
-
-.admin-manual-preview__card p:last-child {
-  margin-bottom: 0;
-}
-
-.admin-manual-preview__month {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0.3rem 0.7rem;
-  border-radius: 999px;
-  background: rgba(225, 236, 232, 0.95);
-  color: #24554d;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.admin-manual-preview__roles {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.admin-manual-preview__role {
-  display: grid;
-  gap: 0.24rem;
-  padding: 0.8rem 0.85rem;
-  border-radius: 18px;
-  background: rgba(255, 252, 247, 0.92);
-  border: 1px solid rgba(129, 103, 70, 0.12);
-}
-
-.admin-manual-preview__role strong {
-  color: #2f2a24;
-  font-size: 0.98rem;
-}
-
-.admin-manual-preview__role span {
-  color: #1f7c70;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.admin-manual-preview__role p {
-  margin: 0;
-  line-height: 1.55;
-}
-
-.admin-manual-preview__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.admin-manual-preview__tags span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0.35rem 0.72rem;
-  border-radius: 999px;
-  background: rgba(239, 247, 244, 0.96);
-  color: #1f7c70;
-  font-size: 0.76rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.admin-manual-preview__thanks {
+.admin-manual-device__screen {
   display: block;
-  margin-top: 0.55rem;
-  color: #8f6d45;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fffdf8;
+}
+
+.admin-manual-device__srcdoc {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
 .admin-table-wrap {

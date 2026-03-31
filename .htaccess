@@ -1,0 +1,19 @@
+Options -Indexes
+
+RewriteEngine On
+
+RewriteRule ^p/?$ p/index.php [L,QSA,NC]
+RewriteRule ^p/([A-Za-z0-9_-]{3,128})/?$ p/index.php?slug=$1 [L,QSA,NC]
+
+RewriteRule ^admin/?$ admin/index.php [L,QSA,NC]
+RewriteRule ^admin/login/?$ admin/login.php [L,QSA,NC]
+RewriteRule ^admin/logout/?$ admin/logout.php [L,QSA,NC]
+RewriteRule ^admin/setup/?$ admin/setup.php [L,QSA,NC]
+RewriteRule ^admin/familias/?$ admin/familias.php [L,QSA,NC]
+RewriteRule ^admin/padrinhos/?$ admin/padrinhos.php [L,QSA,NC]
+RewriteRule ^admin/convidados/?$ admin/convidados.php [L,QSA,NC]
+RewriteRule ^admin/relatorios/?$ admin/relatorios.php [L,QSA,NC]
+RewriteRule ^c/([A-Za-z0-9_-]{3,128})/?$ c/index.php?token=$1 [L,QSA,NC]
+
+RewriteRule ^(?:app|config|sql)/ - [F,L,NC]
+RewriteRule \.(?:sql|md)$ - [F,L,NC]

@@ -1,0 +1,15 @@
+config/env.php
+padrinhos_qrcodes.csv
+
+build/
+node_modules/
+vendor/
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+*.log
+*.tmp
+*.bak

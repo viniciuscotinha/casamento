@@ -50,6 +50,11 @@ function admin_render_header(string $title): void
   <?php if ($admin !== null): ?>
     <div class="admin-app">
       <aside class="admin-sidebar">
+        <div class="admin-sidebar-card admin-sidebar-card--user">
+          <span class="admin-user-kicker">Conectado como</span>
+          <strong><?= e(trim((string) ($admin['nome'] ?? '')) !== '' ? $admin['nome'] : $admin['login']) ?></strong>
+          <span><?= e($admin['login']) ?></span>
+        </div>
         <nav class="admin-nav" aria-label="Menu administrativo">
           <?php admin_nav_link('/admin', 'Dashboard'); ?>
           <?php admin_nav_link('/admin/familias', 'Familias'); ?>
@@ -59,11 +64,6 @@ function admin_render_header(string $title): void
           <?php admin_nav_link('/admin/logout', 'Sair'); ?>
         </nav>
 
-        <div class="admin-sidebar-card admin-sidebar-card--user">
-          <span class="admin-user-kicker">Conectado como</span>
-          <strong><?= e(trim((string) ($admin['nome'] ?? '')) !== '' ? $admin['nome'] : $admin['login']) ?></strong>
-          <span><?= e($admin['login']) ?></span>
-        </div>
       </aside>
 
       <div class="admin-content">

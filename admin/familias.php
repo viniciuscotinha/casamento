@@ -470,12 +470,15 @@ $exportLinksQuery = http_build_query(['export' => 'familias_links']);
   </article>
 
   <section class="admin-panel">
-    <p class="eyebrow">Lista</p>
-    <h2>Familias cadastradas</h2>
-    <!-- <p>Baixe uma planilha com as familias e os links prontos para uso. Quando uma linha sair sem link, o CSV mostra em `status_link` o que falta fazer.</p> -->
-    <div class="admin-page-actions">
-      <a class="admin-button" href="<?= e(url('/admin/familias?' . $exportLinksQuery)) ?>">Exportar familias + links</a>
-    </div>
+    <section class="lista-familias">
+        <section>
+            <p class="eyebrow">Lista</p>
+            <h2>Familias cadastradas</h2>
+        </section>
+        <div class="admin-page-actions">
+          <a class="admin-button" href="<?= e(url('/admin/familias?' . $exportLinksQuery)) ?>">Exportar</a>
+        </div>
+    </section>
     <div class="admin-table-wrap">
       <table class="admin-table">
         <thead>

@@ -429,31 +429,6 @@ try {
 admin_render_header('Convidados');
 admin_render_flashes();
 ?>
-<section class="admin-page-header">
-  <div>
-    <p class="eyebrow">Convidados</p>
-    <h2>Gerencie pessoas, familias e status</h2>
-    <p>Esta tela fica focada no RSVP: cadastre rapido, filtre a lista e revise o responsavel de cada familia.</p>
-  </div>
-  <div class="admin-mini-metrics">
-    <article class="admin-mini-metric">
-      <span>Exibidos</span>
-      <strong><?= e($guestMetrics['total']) ?></strong>
-    </article>
-    <article class="admin-mini-metric">
-      <span>Responsaveis</span>
-      <strong><?= e($guestMetrics['responsaveis']) ?></strong>
-    </article>
-    <article class="admin-mini-metric">
-      <span>Confirmados</span>
-      <strong><?= e($guestMetrics['confirmados']) ?></strong>
-    </article>
-    <article class="admin-mini-metric">
-      <span>Pendentes</span>
-      <strong><?= e($guestMetrics['pendentes']) ?></strong>
-    </article>
-  </div>
-</section>
 
 <section class="admin-two-col">
   <article class="admin-panel admin-panel--sticky">
@@ -556,107 +531,61 @@ admin_render_flashes();
     </form>
   </article>
 
-  <article class="admin-panel">
-    <p class="eyebrow">Filtros</p>
-    <h2>Buscar convidados</h2>
-    <form method="get" class="admin-form-grid">
-      <div class="admin-field">
-        <label for="q">Busca por nome ou familia</label>
-        <input id="q" name="q" type="text" value="<?= e($filters['q']) ?>" placeholder="Ex.: Tolentino">
-      </div>
-      <div class="admin-form-grid admin-form-grid--two">
-        <div class="admin-field">
-          <label for="filter_familia_id">Familia</label>
-          <select id="filter_familia_id" name="familia_id">
-            <option value="">Todas</option>
-            <?php foreach ($families as $family): ?>
-              <option value="<?= e((int) $family['id']) ?>" <?= $filters['familia_id'] === (int) $family['id'] ? 'selected' : '' ?>>
-                <?= e($family['nome_grupo']) ?>
-              </option>
+  <section class="admin-panel">
+    <p class="eyebrow">Lista</p>
+    <h2>Convidados ativos</h2>
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Convidado</th>
+            <th>Familia</th>
+            <th>Responsavel</th>
+            <th>Contato</th>
+            <th>Status</th>
+            <th>Acoes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php if ($guests === []): ?>
+            <tr>
+              <td colspan="7">Nenhum convidado encontrado.</td>
+            </tr>
+          <?php else: ?>
+            <?php foreach ($guests as $guest): ?>
+              <tr>
+                <td>
+                  <strong><?= e(normalized_full_name($guest)) ?></strong><br>
+                  <small>
+                    <?= (int) $guest['is_responsavel'] === 1 ? 'Responsavel da familia' : 'Membro vinculado' ?>
+                  </small>
+                </td>
+                <td><?= e($guest['nome_grupo']) ?></td>
+                <td><?= e(trim((string) $guest['responsavel_nome']) !== '' ? $guest['responsavel_nome'] : '-') ?></td>
+                <td>
+                  <?= e($guest['telefone'] ?? '-') ?><br>
+                  <small><?= e($guest['email'] ?? '') ?></small>
+                </td>
+                <td><span class="status-pill is-<?= e($guest['status']) ?>"><?= e($guest['status']) ?></span></td>
+                <td>
+                  <div class="inline-form">
+                    <a class="admin-button-secondary" href="<?= e(url('/admin/convidados?edit=' . (int) $guest['id'])) ?>">Editar</a>
+                    <form method="post" class="inline-form">
+                      <?= csrf_input() ?>
+                      <input type="hidden" name="action" value="delete">
+                      <input type="hidden" name="id" value="<?= e((int) $guest['id']) ?>">
+                      <button class="admin-button-danger" type="submit">Excluir</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
             <?php endforeach; ?>
-          </select>
-        </div>
-        <div class="admin-field">
-          <label for="filter_status">Status</label>
-          <select id="filter_status" name="status">
-            <option value="">Todos</option>
-            <?php foreach (['pendente', 'confirmado', 'nao_ira'] as $statusOption): ?>
-              <option value="<?= e($statusOption) ?>" <?= $filters['status'] === $statusOption ? 'selected' : '' ?>>
-                <?= e($statusOption) ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-      </div>
-      <div class="admin-actions">
-        <button class="admin-button-secondary" type="submit">Aplicar filtros</button>
-        <a class="admin-button-secondary" href="<?= e(url('/admin/convidados')) ?>">Limpar</a>
-      </div>
-    </form>
-    <div class="admin-note">
-      Dica: marque primeiro o responsavel da familia e depois vincule os demais convidados a ele.
-      <?php if ($supportsManualInvite): ?>
-        <br>Tudo que for de padrinhos, casal, link `/p/...` e card individual agora fica centralizado na tela `/admin/padrinhos`.
-      <?php endif; ?>
+          <?php endif; ?>
+        </tbody>
+      </table>
     </div>
-  </article>
+  </section>
 </section>
 
-<section class="admin-panel">
-  <p class="eyebrow">Lista</p>
-  <h2>Convidados ativos</h2>
-  <div class="admin-table-wrap">
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th>Convidado</th>
-          <th>Familia</th>
-          <th>Responsavel</th>
-          <th>Contato</th>
-          <th>Status</th>
-          <th>Atualizado</th>
-          <th>Acoes</th>
-        </tr>
-      </thead>
-      <tbody>
-        <?php if ($guests === []): ?>
-          <tr>
-            <td colspan="7">Nenhum convidado encontrado.</td>
-          </tr>
-        <?php else: ?>
-          <?php foreach ($guests as $guest): ?>
-            <tr>
-              <td>
-                <strong><?= e(normalized_full_name($guest)) ?></strong><br>
-                <small>
-                  <?= (int) $guest['is_responsavel'] === 1 ? 'Responsavel da familia' : 'Membro vinculado' ?>
-                </small>
-              </td>
-              <td><?= e($guest['nome_grupo']) ?></td>
-              <td><?= e(trim((string) $guest['responsavel_nome']) !== '' ? $guest['responsavel_nome'] : '-') ?></td>
-              <td>
-                <?= e($guest['telefone'] ?? '-') ?><br>
-                <small><?= e($guest['email'] ?? '') ?></small>
-              </td>
-              <td><span class="status-pill is-<?= e($guest['status']) ?>"><?= e($guest['status']) ?></span></td>
-              <td><?= e(format_datetime($guest['updated_at'])) ?></td>
-              <td>
-                <div class="inline-form">
-                  <a class="admin-button-secondary" href="<?= e(url('/admin/convidados?edit=' . (int) $guest['id'])) ?>">Editar</a>
-                  <form method="post" class="inline-form">
-                    <?= csrf_input() ?>
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="id" value="<?= e((int) $guest['id']) ?>">
-                    <button class="admin-button-danger" type="submit">Excluir</button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        <?php endif; ?>
-      </tbody>
-    </table>
-  </div>
-</section>
 <?php
 admin_render_footer();

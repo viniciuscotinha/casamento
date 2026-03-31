@@ -67,7 +67,7 @@ function admin_render_header(string $title): void
       </aside>
 
       <div class="admin-content">
-        <header class="admin-toolbar">
+        <header class="admin-toolbar admin-toolbar--sticky">
           <div>
             <p class="admin-toolbar-kicker">Area administrativa</p>
             <h1 class="admin-toolbar-title"><?= e($title) ?></h1>

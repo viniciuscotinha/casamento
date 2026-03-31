@@ -150,6 +150,14 @@
   border-radius: 24px;
 }
 
+.admin-toolbar--sticky {
+  position: sticky;
+  top: 0.8rem;
+  z-index: 40;
+  background: rgba(255, 252, 247, 0.96);
+  backdrop-filter: blur(12px);
+}
+
 .admin-toolbar-kicker {
   margin: 0 0 0.3rem;
   color: #807362;

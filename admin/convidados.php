@@ -20,7 +20,7 @@ try {
             $guestId = (int) ($_POST['id'] ?? 0);
             $familyId = (int) ($_POST['familia_id'] ?? 0);
             $responsavelId = (int) ($_POST['responsavel_id'] ?? 0);
-            $isResponsavel = isset($_POST['is_responsavel']) ? 1 : 0;
+            $isResponsavel = 0;
             $nome = trim((string) ($_POST['nome'] ?? ''));
             $sobrenome = trim((string) ($_POST['sobrenome'] ?? ''));
             $telefone = trim((string) ($_POST['telefone'] ?? ''));
@@ -74,6 +74,29 @@ try {
                 throw new RuntimeException('Convidado nao encontrado para atualizacao.');
             }
 
+            $familyRepresentative = db_one(
+                'SELECT id, nome, sobrenome
+                 FROM convidados
+                 WHERE familia_id = :familia_id
+                   AND is_responsavel = 1
+                   AND deleted_at IS NULL
+                 LIMIT 1',
+                ['familia_id' => $familyId]
+            );
+
+            if ($familyRepresentative !== null) {
+                if ($action === 'update' && (int) $familyRepresentative['id'] === $guestId) {
+                    $isResponsavel = 1;
+                    $responsavelId = 0;
+                } else {
+                    $isResponsavel = 0;
+                    $responsavelId = (int) $familyRepresentative['id'];
+                }
+            } else {
+                $isResponsavel = 1;
+                $responsavelId = 0;
+            }
+
             if ($manualInviteId > 0 && $manualRoleTitle === '') {
                 throw new RuntimeException('Preencha o titulo do card individual para este convite de padrinhos.');
             }
@@ -98,28 +121,6 @@ try {
                 if ($manualGuestCount >= 2) {
                     throw new RuntimeException('Cada convite de padrinhos pode ter no maximo duas pessoas no mesmo link.');
                 }
-            }
-
-            if ($isResponsavel === 1) {
-                $existingRepresentative = db_one(
-                    'SELECT id
-                     FROM convidados
-                     WHERE familia_id = :familia_id
-                       AND is_responsavel = 1
-                       AND deleted_at IS NULL
-                       AND id <> :id
-                     LIMIT 1',
-                    [
-                        'familia_id' => $familyId,
-                        'id' => $guestId,
-                    ]
-                );
-
-                if ($existingRepresentative !== null) {
-                    throw new RuntimeException('Esta familia ja possui um responsavel principal cadastrado.');
-                }
-
-                $responsavelId = 0;
             }
 
             if ($responsavelId > 0) {
@@ -332,6 +333,11 @@ try {
            AND c.is_responsavel = 1
          ORDER BY f.nome_grupo ASC, c.nome ASC"
     );
+    $representativesByFamily = [];
+
+    foreach ($representatives as $representativeRow) {
+        $representativesByFamily[(int) $representativeRow['familia_id']] = $representativeRow;
+    }
 
     $filters = [
         'familia_id' => (int) ($_GET['familia_id'] ?? 0),
@@ -422,6 +428,26 @@ try {
             trim((string) ($editingGuest['nome'] ?? ''))
         );
     }
+
+    $editingFamilyId = (int) ($editingGuest['familia_id'] ?? 0);
+    $editingFamilyRepresentative = $editingFamilyId > 0
+        ? ($representativesByFamily[$editingFamilyId] ?? null)
+        : null;
+    $currentGuestIdValue = (int) ($editingGuest['id'] ?? 0);
+    $linkedRepresentativeDisplay = '';
+    $linkedRepresentativeHelp = 'Selecione uma família para definir o responsável automaticamente.';
+
+    if ($editingFamilyId > 0) {
+        if ($editingFamilyRepresentative !== null) {
+            $linkedRepresentativeDisplay = normalized_full_name($editingFamilyRepresentative);
+            $linkedRepresentativeHelp = (int) $editingFamilyRepresentative['id'] === $currentGuestIdValue
+                ? 'Este convidado já é o responsável principal desta família.'
+                : 'Responsável encontrado automaticamente para esta família.';
+        } else {
+            $linkedRepresentativeDisplay = 'Este convidado será o responsável principal da família.';
+            $linkedRepresentativeHelp = 'Esta família ainda não tem responsável, então este cadastro será salvo como responsável principal.';
+        }
+    }
 } catch (Throwable $exception) {
     admin_render_runtime_error('Convidados', $exception->getMessage());
 }
@@ -440,6 +466,7 @@ admin_render_flashes();
       <?php if ($editingGuest !== null): ?>
         <input type="hidden" name="id" value="<?= e((int) $editingGuest['id']) ?>">
       <?php endif; ?>
+      <input type="hidden" id="current_guest_id" value="<?= e($currentGuestIdValue) ?>">
 
       <div class="admin-form-grid admin-form-grid--two">
         <div class="admin-field">
@@ -447,8 +474,11 @@ admin_render_flashes();
           <select id="familia_id" name="familia_id" required>
             <option value="">Selecione</option>
             <?php foreach ($families as $family): ?>
+              <?php $familyRepresentativeOption = $representativesByFamily[(int) $family['id']] ?? null; ?>
               <option
                 value="<?= e((int) $family['id']) ?>"
+                data-representative-id="<?= e((int) ($familyRepresentativeOption['id'] ?? 0)) ?>"
+                data-representative-name="<?= e($familyRepresentativeOption !== null ? normalized_full_name($familyRepresentativeOption) : '') ?>"
                 <?= (int) ($editingGuest['familia_id'] ?? 0) === (int) $family['id'] ? 'selected' : '' ?>
               >
                 <?= e($family['nome_grupo']) ?>
@@ -496,25 +526,17 @@ admin_render_flashes();
         <input type="hidden" name="manual_role_text" value="<?= e($manualRoleTextValue) ?>">
         <input type="hidden" name="manual_sort_order" value="<?= e((int) ($editingGuest['manual_sort_order'] ?? 1)) ?>">
       <?php endif; ?>
-
-      <div class="admin-check-row">
-        <input id="is_responsavel" name="is_responsavel" type="checkbox" value="1" <?= (int) ($editingGuest['is_responsavel'] ?? 0) === 1 ? 'checked' : '' ?>>
-        <label class="admin-check" for="is_responsavel">Este convidado e o responsavel da familia</label>
-      </div>
+      <input type="hidden" id="responsavel_id" name="responsavel_id" value="<?= e((int) ($editingGuest['responsavel_id'] ?? 0)) ?>">
 
       <div class="admin-field">
-        <label for="responsavel_id">Responsavel vinculado</label>
-        <select id="responsavel_id" name="responsavel_id">
-          <option value="">Sem responsavel definido</option>
-          <?php foreach ($representatives as $representative): ?>
-            <option
-              value="<?= e((int) $representative['id']) ?>"
-              <?= (int) ($editingGuest['responsavel_id'] ?? 0) === (int) $representative['id'] ? 'selected' : '' ?>
-            >
-              <?= e(trim($representative['nome_grupo'] . ' - ' . normalized_full_name($representative))) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+        <label for="responsavel_vinculado_display">Responsável vinculado</label>
+        <input
+          id="responsavel_vinculado_display"
+          type="text"
+          value="<?= e($linkedRepresentativeDisplay) ?>"
+          readonly
+        >
+        <small data-family-representative-help><?= e($linkedRepresentativeHelp) ?></small>
       </div>
 
       <div class="admin-field">
@@ -539,11 +561,10 @@ admin_render_flashes();
         <thead>
           <tr>
             <th>Convidado</th>
-            <th>Familia</th>
-            <th>Responsavel</th>
-            <th>Contato</th>
+            <th>Família</th>
+            <th>Responsável</th>
             <th>Status</th>
-            <th>Acoes</th>
+            <th>Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -562,10 +583,6 @@ admin_render_flashes();
                 </td>
                 <td><?= e($guest['nome_grupo']) ?></td>
                 <td><?= e(trim((string) $guest['responsavel_nome']) !== '' ? $guest['responsavel_nome'] : '-') ?></td>
-                <td>
-                  <?= e($guest['telefone'] ?? '-') ?><br>
-                  <small><?= e($guest['email'] ?? '') ?></small>
-                </td>
                 <td><span class="status-pill is-<?= e($guest['status']) ?>"><?= e($guest['status']) ?></span></td>
                 <td>
                   <div class="inline-form">

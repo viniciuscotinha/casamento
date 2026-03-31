@@ -218,6 +218,56 @@ document.addEventListener('DOMContentLoaded', () => {
     syncManualRoleText();
   }
 
+  const familySelect = document.querySelector('#familia_id');
+  const representativeIdInput = document.querySelector('#responsavel_id');
+  const representativeDisplay = document.querySelector('#responsavel_vinculado_display');
+  const representativeHelp = document.querySelector('[data-family-representative-help]');
+  const currentGuestIdInput = document.querySelector('#current_guest_id');
+
+  if (
+    familySelect instanceof HTMLSelectElement
+    && representativeIdInput instanceof HTMLInputElement
+    && representativeDisplay instanceof HTMLInputElement
+    && representativeHelp instanceof HTMLElement
+  ) {
+    const syncFamilyRepresentative = () => {
+      const selectedOption = familySelect.selectedOptions[0];
+      const familySelected = familySelect.value.trim() !== '';
+      const representativeId = selectedOption instanceof HTMLOptionElement
+        ? (selectedOption.dataset.representativeId || '').trim()
+        : '';
+      const representativeName = selectedOption instanceof HTMLOptionElement
+        ? (selectedOption.dataset.representativeName || '').trim()
+        : '';
+      const currentGuestId = currentGuestIdInput instanceof HTMLInputElement
+        ? currentGuestIdInput.value.trim()
+        : '';
+
+      if (!familySelected) {
+        representativeIdInput.value = '';
+        representativeDisplay.value = '';
+        representativeHelp.textContent = 'Selecione uma fam\u00edlia para definir o respons\u00e1vel automaticamente.';
+        return;
+      }
+
+      if (representativeId !== '') {
+        representativeIdInput.value = representativeId;
+        representativeDisplay.value = representativeName;
+        representativeHelp.textContent = currentGuestId !== '' && currentGuestId === representativeId
+          ? 'Este convidado j\u00e1 \u00e9 o respons\u00e1vel principal desta fam\u00edlia.'
+          : 'Respons\u00e1vel encontrado automaticamente para esta fam\u00edlia.';
+        return;
+      }
+
+      representativeIdInput.value = '';
+      representativeDisplay.value = 'Este convidado ser\u00e1 o respons\u00e1vel principal da fam\u00edlia.';
+      representativeHelp.textContent = 'Esta fam\u00edlia ainda n\u00e3o tem respons\u00e1vel, ent\u00e3o este cadastro ser\u00e1 salvo como respons\u00e1vel principal.';
+    };
+
+    familySelect.addEventListener('change', syncFamilyRepresentative);
+    syncFamilyRepresentative();
+  }
+
   const previewFrame = document.querySelector('[data-manual-preview-frame]');
   const previewSource = document.querySelector('[data-manual-preview-srcdoc]');
 

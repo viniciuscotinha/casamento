@@ -382,6 +382,12 @@
   box-shadow: 0 0 0 4px rgba(31, 124, 112, 0.12);
 }
 
+.admin-field input[readonly] {
+  background: rgba(245, 240, 232, 0.96);
+  color: #5f584f;
+  cursor: default;
+}
+
 .admin-check-row {
   display: flex;
   align-items: center;
